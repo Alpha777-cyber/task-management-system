@@ -5,15 +5,24 @@ require('dotenv').config();
 const userRoutes = require('./routes/users');
 const taskRoutes = require('./routes/tasks');
 
+const { swaggerUi, swaggerSpec } = require("./swagger");
+
 const app = express();
 
 // Middleware
 app.use(express.json());
 
 // Connect to MongoDB
+console.log('Connecting to MongoDB:', process.env.MONGO_URI);
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('✅ MongoDB Connected'))
   .catch(err => console.log('❌ MongoDB Error:', err.message));
+
+
+
+// Swagger route
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
 
 // Welcome route
 app.get('/', (req, res) => {
@@ -51,7 +60,7 @@ app.use('/users', userRoutes);
 app.use('/tasks', taskRoutes);
 
 // 404 handler
-app.use('*', (req, res) => {
+app.use((req, res) => {
   res.status(404).json({
     success: false,
     error: 'Route not found'
